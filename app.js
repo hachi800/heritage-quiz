@@ -294,6 +294,12 @@ document.getElementById('btn-back').addEventListener('click',   () => renderTop(
 document.getElementById('btn-next').addEventListener('click',   () => nextQuestion());
 document.getElementById('btn-retry').addEventListener('click',  () => startQuiz(session.mode, session.category));
 document.getElementById('btn-home').addEventListener('click',   () => renderTop());
+document.getElementById('btn-reset').addEventListener('click',  () => {
+  if (!confirm('学習進捗（正答率・復習リスト）をすべてリセットしますか？')) return;
+  localStorage.removeItem(WRONG_IDS_KEY);
+  localStorage.removeItem(STATS_KEY);
+  renderTop();
+});
 
 // ─── Service Worker ───────────────────────────────────────────────────────────
 
