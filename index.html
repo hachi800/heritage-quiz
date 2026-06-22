@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a3a5c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="遺産クイズ">
+  <title>世界遺産検定2級 学習アプリ</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== トップ画面 ===== -->
+  <div id="screen-top" class="screen active">
+    <header class="top-header">
+      <div class="top-header-inner">
+        <p class="top-subtitle">世界遺産検定2級</p>
+        <h1 class="top-title">学習クイズ</h1>
+      </div>
+    </header>
+    <main class="top-main">
+
+      <section class="stats-section" id="stats-section"></section>
+
+      <section class="mode-section">
+        <h2 class="section-title">出題範囲を選択</h2>
+        <div id="category-list" class="category-list"></div>
+        <button class="btn btn-primary btn-full" id="btn-all">
+          <span class="btn-icon">&#127760;</span> すべての分野からランダム出題
+        </button>
+        <button class="btn btn-review btn-full" id="btn-review" disabled>
+          <span class="btn-icon">&#128260;</span>
+          <span id="review-label">復習モード（間違えた問題）</span>
+        </button>
+        <p class="review-hint" id="review-hint">復習対象の問題はありません</p>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===== クイズ画面 ===== -->
+  <div id="screen-quiz" class="screen">
+    <header class="quiz-header">
+      <button class="btn-back" id="btn-back" aria-label="トップに戻る">&#8592; 戻る</button>
+      <div class="progress-text" id="progress-text">1 / 10</div>
+    </header>
+    <div class="progress-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <main class="quiz-main">
+      <div class="question-card">
+        <p class="category-tag" id="question-category"></p>
+        <p class="question-text" id="question-text"></p>
+      </div>
+
+      <div class="choices" id="choices"></div>
+
+      <div class="explanation-box hidden" id="explanation-box">
+        <p class="explanation-label" id="explanation-label"></p>
+        <p class="explanation-text" id="explanation-text"></p>
+      </div>
+
+      <button class="btn btn-primary btn-full hidden" id="btn-next">次の問題へ &#8594;</button>
+    </main>
+  </div>
+
+  <!-- ===== 結果画面 ===== -->
+  <div id="screen-result" class="screen">
+    <header class="result-header">
+      <h1>結果</h1>
+    </header>
+    <main class="result-main">
+      <div class="result-card" id="result-card">
+        <p class="result-score" id="result-score"></p>
+        <p class="result-rate" id="result-rate"></p>
+        <div class="result-bar-wrap"><div class="result-bar" id="result-bar"></div></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn btn-primary btn-full" id="btn-retry">&#128257; もう一度同じ範囲で挑戦</button>
+        <button class="btn btn-secondary btn-full" id="btn-home">&#127968; トップに戻る</button>
+      </div>
+
+      <section class="wrong-answers-section" id="wrong-answers-section"></section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
