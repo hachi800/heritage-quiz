@@ -54,6 +54,7 @@ function showScreen(id) {
 function renderTop() {
   renderStats();
   renderCategoryButtons();
+  renderCountrySection();
   renderReviewButton();
   showScreen('screen-top');
 }
@@ -113,6 +114,72 @@ function renderReviewButton() {
   }
 }
 
+// ─── Country ──────────────────────────────────────────────────────────────────
+
+// 長い名称が先に来るようソート（部分一致の誤検出を防ぐ）
+const COUNTRY_NAMES = [
+  'アメリカ合衆国', 'コンゴ民主共和国', 'ボスニア・ヘルツェゴビナ', '南アフリカ共和国',
+  'アルジェリア', 'アルゼンチン', 'アルメニア', 'アゼルバイジャン',
+  'イギリス', 'イスラエル', 'イタリア', 'イラク', 'イラン', 'インド', 'インドネシア',
+  'ウクライナ', 'ウルグアイ',
+  'エクアドル', 'エジプト', 'エチオピア',
+  'オーストラリア', 'オーストリア', 'オランダ', 'オマーン',
+  'カザフスタン', 'カナダ', 'カンボジア', 'キューバ', 'キルギス', 'ギリシャ', 'ガーナ', 'グアテマラ',
+  'コロンビア', 'コスタリカ', 'コンゴ',
+  'ザンビア', 'ジンバブエ', 'ジョージア',
+  'スイス', 'スウェーデン', 'スペイン', 'スリランカ', 'スロベニア', 'スロバキア',
+  'セーシェル', 'セネガル',
+  'タイ', 'タンザニア', 'チェコ', 'チュニジア', 'チリ', '中国',
+  'デンマーク', 'ドイツ',
+  '日本', 'ネパール', 'ノルウェー', 'ニュージーランド', 'ニカラグア', 'ナイジェリア',
+  'パキスタン', 'ハンガリー', 'パラグアイ',
+  'フィリピン', 'フランス', 'ブラジル', 'ブルガリア',
+  'ペルー', 'ベトナム', 'ベルギー', 'ベラルーシ',
+  'ポーランド', 'ポルトガル', 'ボリビア',
+  'マルタ', 'マリ', 'マレーシア', 'メキシコ', 'モロッコ', 'モンゴル', 'ミャンマー',
+  'ヨルダン', 'ラオス', 'ルーマニア', 'ロシア',
+  '韓国', '南アフリカ',
+  'シリア', 'クロアチア', 'ホンジュラス', 'トルコ', 'トルクメニスタン',
+  'アメリカ',
+].sort((a, b) => b.length - a.length);
+
+function extractCountry(q) {
+  if (q.category === '文化遺産（日本）') return '日本';
+  const text = (q.explanation || '') + ' ' + (q.question || '');
+  for (const c of COUNTRY_NAMES) {
+    if (text.includes(c)) return c;
+  }
+  return null;
+}
+
+function buildCountryMap() {
+  const map = {};
+  for (const q of allQuestions) {
+    const c = extractCountry(q);
+    if (!c) continue;
+    if (!map[c]) map[c] = [];
+    map[c].push(q);
+  }
+  return map;
+}
+
+function renderCountrySection() {
+  const map      = buildCountryMap();
+  const countries = Object.keys(map).sort((a, b) => map[b].length - map[a].length);
+
+  const grid = document.getElementById('country-grid');
+  grid.innerHTML = countries.map(c =>
+    `<button class="btn-country" data-country="${escHtml(c)}">
+      <span class="country-name">${escHtml(c)}</span>
+      <span class="country-count">${map[c].length}問</span>
+    </button>`
+  ).join('');
+
+  grid.querySelectorAll('.btn-country').forEach(btn => {
+    btn.addEventListener('click', () => startQuiz('nation', btn.dataset.country));
+  });
+}
+
 // ─── Quiz ─────────────────────────────────────────────────────────────────────
 
 function shuffle(arr) {
@@ -124,21 +191,23 @@ function shuffle(arr) {
   return a;
 }
 
-function startQuiz(mode, category) {
+function startQuiz(mode, param) {
   let pool = [];
 
   if (mode === 'all') {
     pool = shuffle([...allQuestions]);
   } else if (mode === 'category') {
-    pool = shuffle(allQuestions.filter(q => q.category === category));
+    pool = shuffle(allQuestions.filter(q => q.category === param));
   } else if (mode === 'review') {
     const wrongIds = getWrongIds();
     pool = shuffle(allQuestions.filter(q => wrongIds.includes(q.id)));
+  } else if (mode === 'nation') {
+    pool = shuffle(allQuestions.filter(q => extractCountry(q) === param));
   }
 
   if (pool.length === 0) { alert('出題できる問題がありません。'); return; }
 
-  session = { mode, category, questions: pool, currentIndex: 0, answers: [] };
+  session = { mode, category: param, questions: pool, currentIndex: 0, answers: [] };
   showScreen('screen-quiz');
   renderQuestion();
 }
@@ -206,8 +275,8 @@ function selectAnswer(selectedIndex) {
   document.querySelectorAll('.btn-choice').forEach(btn => {
     btn.disabled = true;
     const i = parseInt(btn.dataset.index, 10);
-    if (i === q.answer)                     btn.classList.add('correct');
-    if (i === selectedIndex && !correct)    btn.classList.add('wrong');
+    if (i === q.answer)                  btn.classList.add('correct');
+    if (i === selectedIndex && !correct) btn.classList.add('wrong');
   });
 
   // Show explanation
@@ -299,6 +368,12 @@ document.getElementById('btn-reset').addEventListener('click',  () => {
   localStorage.removeItem(WRONG_IDS_KEY);
   localStorage.removeItem(STATS_KEY);
   renderTop();
+});
+document.getElementById('btn-toggle-country').addEventListener('click', () => {
+  const grid  = document.getElementById('country-grid');
+  const arrow = document.getElementById('country-arrow');
+  const isHidden = grid.classList.toggle('hidden');
+  arrow.textContent = isHidden ? '▼' : '▲';
 });
 
 // ─── Service Worker ───────────────────────────────────────────────────────────
